@@ -1,0 +1,8 @@
+# 排除所有.开头的隐藏文件:
+.*
+# 排除所有.csv文件:
+*.csv
+
+# 不排除.gitignore:
+!.gitignore
+!log_reg_baseline_gridsearch2.csv
