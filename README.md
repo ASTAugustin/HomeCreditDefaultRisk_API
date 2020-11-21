@@ -15,3 +15,5 @@ API cantains an ipython file, which can create a basic API of HomeCreditDefaultR
 I also give a test case. You can use it in Postman to test and use this API from outside.
 
 I will surely put our final image on DockerHub. I hope we can create a wonderful API. 
+
+注意：现在的API不问存在问题不能正常运行！请大家先写算法部分！
