@@ -16,4 +16,8 @@ I also give a test case. You can use it in Postman to test and use this API from
 
 I will surely put our final image on DockerHub. I hope we can create a wonderful API. 
 
-注意：现在的API不问存在问题不能正常运行！请大家先写算法部分！
+## 会议总结
+
+1. EDA 部分需要重新讨论
+2. Transformer 进行了优化
+3. Docker 部分取消，直接做一个本地的 API
