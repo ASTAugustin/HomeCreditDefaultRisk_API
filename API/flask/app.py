@@ -15,6 +15,7 @@ import time
 
 pipeline = joblib.load('./API/flask/preprocess_model.joblib')
 clf = joblib.load('./API/flask/clf.joblib')
+
 bur = bureauTransformer().transform(pd.read_csv('./API/flask/input/bureau.csv'), pd.read_csv('./API/flask/input/bureau_balance.csv'))
 pre = previousTransformer().transform(pd.read_csv('./API/flask/input/previous_application.csv'))
 pos = posTransformer().transform(pd.read_csv('./API/flask/input/POS_CASH_balance.csv'))
