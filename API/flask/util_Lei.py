@@ -21,8 +21,18 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import KFold
 import lightgbm as lgb
+
  
-class appTrainTransformer(BaseEstimator, TransformerMixin):
+ # One-hot encoding for categorical columns with get_dummies
+def one_hot_encoder(df, nan_as_category = True):
+    original_columns = list(df.columns)
+    categorical_columns = [col for col in df.columns if ((df[col].dtype == 'object') or (df[col].dtype == 'bool'))]
+    df = pd.get_dummies(df, columns= categorical_columns, dummy_na= nan_as_category)
+    new_columns = [c for c in df.columns if c not in original_columns]
+    return df, new_columns
+
+    
+class appTrainTransformer_Lei(BaseEstimator, TransformerMixin):
     def __init__(self):
         return None
  
@@ -40,11 +50,10 @@ class appTrainTransformer(BaseEstimator, TransformerMixin):
         X['INCOME_PER_PERSON'] = X['AMT_INCOME_TOTAL'] / X['CNT_FAM_MEMBERS']
         X['ANNUITY_INCOME_PERC'] = X['AMT_ANNUITY'] / X['AMT_INCOME_TOTAL']
         X['PAYMENT_RATE'] = X['AMT_ANNUITY'] / X['AMT_CREDIT']
-        X.replace(np.inf, np.nan, inplace = True)
-
+        X.replace([np.inf, -np.inf], np.nan, inplace=True)
         return X
 
-class dropTransformer(BaseEstimator, TransformerMixin):
+class dropTransformer_Lei(BaseEstimator, TransformerMixin):
     def __init__(self, rate):
         self.rate = rate
         self.drop = []
@@ -60,9 +69,10 @@ class dropTransformer(BaseEstimator, TransformerMixin):
  
     def transform(self, X_copy, y=None):
         X_copy.drop(self.drop, axis = 1, inplace = True)
+        X_copy.replace([np.inf, -np.inf], np.nan, inplace=True)
         return X_copy
 
-class bureauTransformer(BaseEstimator, TransformerMixin):
+class bureauTransformer_Lei(BaseEstimator, TransformerMixin):
     def __init__(self):
         return None
  
@@ -127,7 +137,7 @@ class bureauTransformer(BaseEstimator, TransformerMixin):
 
         return bureau_agg
 
-class previousTransformer(BaseEstimator, TransformerMixin):
+class previousTransformer_Lei(BaseEstimator, TransformerMixin):
     def __init__(self):
         return None
  
@@ -179,7 +189,7 @@ class previousTransformer(BaseEstimator, TransformerMixin):
 
         return prev_agg
 
-class posTransformer(BaseEstimator, TransformerMixin):
+class posTransformer_Lei(BaseEstimator, TransformerMixin):
     def __init__(self):
         return None
  
@@ -205,7 +215,7 @@ class posTransformer(BaseEstimator, TransformerMixin):
 
         return pos_agg
     
-class installmentsTransformer(BaseEstimator, TransformerMixin):
+class installmentsTransformer_Lei(BaseEstimator, TransformerMixin):
     def __init__(self):
         return None
  
@@ -242,7 +252,7 @@ class installmentsTransformer(BaseEstimator, TransformerMixin):
         ins_agg['INSTAL_COUNT'] = ins.groupby('SK_ID_CURR').size()
         return ins_agg
 
-class ccTransformer(BaseEstimator, TransformerMixin):
+class ccTransformer_Lei(BaseEstimator, TransformerMixin):
     def __init__(self):
         return None
  
@@ -259,13 +269,6 @@ class ccTransformer(BaseEstimator, TransformerMixin):
         cc_agg['CC_COUNT'] = cc.groupby('SK_ID_CURR').size()
         return cc_agg
 
-def one_hot_encoder(df, nan_as_category = True):
-    original_columns = list(df.columns)
-    categorical_columns = [col for col in df.columns if ((df[col].dtype == 'object') or (df[col].dtype == 'bool'))]
-    df = pd.get_dummies(df, columns= categorical_columns, dummy_na= nan_as_category)
-    new_columns = [c for c in df.columns if c not in original_columns]
-    return df, new_columns
-
 class kfoldlgb(BaseEstimator, TransformerMixin):
     def __init__(self, k):
         self.k = k
@@ -274,6 +277,7 @@ class kfoldlgb(BaseEstimator, TransformerMixin):
  
     def fit(self, X, y=None):
         kf = KFold(n_splits=self.k)
+        X_feature = np.zeros(y.shape[0])
         for train_index, test_index in kf.split(X):
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
@@ -293,6 +297,11 @@ class kfoldlgb(BaseEstimator, TransformerMixin):
                 verbose=-1, )
             gbm.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_test, y_test)], eval_metric= 'auc', verbose= 50, early_stopping_rounds= 200)
             self.clf.append(gbm)
+            X_feature[test_index] = gbm.predict_proba(X_test)[:, 1]
+
+        feature = app_train[['SK_ID_CURR']]
+        feature['feature_lei'] = X_feature
+        feature.to_csv('feature_lei.csv', index = False)
         return self
  
     def predict_proba(self, X, y=None):
