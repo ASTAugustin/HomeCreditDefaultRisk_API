@@ -85,7 +85,7 @@ app = Flask(__name__)
 @app.route("/", methods=['POST'])
 def call():
 
-    payload = request.json # 直接读到的是dictionary
+    payload = request.json 
     x = (type(payload).__name__ == 'dict')
 
     x_Lei = join_Lei(pd.DataFrame.from_dict([payload]))
