@@ -2,7 +2,9 @@
 .*
 # 排除所有.csv文件:
 *.csv
-example.py
+*.pyc
+*.joblib
+*.log
 
 # 不排除.gitignore:
 !.gitignore
